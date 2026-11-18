@@ -1,0 +1,15 @@
+{
+  "keeperPid": 17868,
+  "lockPort": 18889,
+  "webPort": 18888,
+  "startedAt": "2026-11-17 17:48:57",
+  "spawnCount": 1,
+  "healthy": true,
+  "updatedAt": "2026-11-19 06:24:14",
+  "lastSpawnAt": "2026-11-17 17:48:58",
+  "lastSpawnReason": "健康检查失败",
+  "serverPid": 17736,
+  "lastHealthyAt": "2026-11-19 06:24:14",
+  "lastExitCode": 1073807364,
+  "lastExitAt": "2026-11-16 21:50:22"
+}
