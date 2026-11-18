@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>非常格调的游戏</title>
+<style>
+  :root{
+    --pink:#ff5c96; --pink-d:#ff3d80; --pink-l:#ffe3ee;
+    --blue:#4aa8ff; --mint:#3fd6a5; --yellow:#ffc93c; --purple:#a06bff;
+    --ink:#33323d; --muted:#8b8896; --paper:#fffdfb; --line:#f0e4ea;
+    --shadow:0 12px 34px rgba(255,92,150,.13);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--ink); background:linear-gradient(160deg,#fff6fa 0%,#f3f9ff 55%,#f6fff9 100%);
+    min-height:100vh;min-height:100dvh;overflow-x:hidden;display:flex;flex-direction:column;
+  }
+  .blob{position:fixed;border-radius:50%;filter:blur(2px);opacity:.5;pointer-events:none;z-index:0}
+  .b1{width:300px;height:300px;background:#ffd9e8;top:-90px;left:-90px}
+  .b2{width:260px;height:260px;background:#d9ecff;bottom:-80px;right:-70px}
+  .b3{width:180px;height:180px;background:#d9ffef;top:38%;right:6%;opacity:.35}
+  .wrap{position:relative;z-index:1;width:min(940px,100%);margin:0 auto;padding:0 18px;flex:1;display:flex;flex-direction:column}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 0 6px}
+  .logo{display:flex;align-items:center;gap:10px;min-width:0}
+  .logo .mark{width:38px;height:38px;flex:none;border-radius:12px;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 6px 16px rgba(255,92,150,.35)}
+  .logo b{font-size:clamp(15px,4vw,19px);font-weight:800;letter-spacing:.02em;white-space:nowrap}
+  .logo b i{font-style:normal;color:var(--pink)}
+  .net{display:flex;align-items:center;gap:6px;flex:none;border:none;background:#fff;color:var(--muted);border-radius:999px;padding:8px 13px;font-size:11px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+  .net:hover{color:var(--pink)}
+  .net .dot{width:8px;height:8px;border-radius:50%;background:#ccc}
+  .net .dot.on{background:var(--mint);box-shadow:0 0 0 4px rgba(63,214,165,.18);animation:bp 2s infinite}
+  @keyframes bp{50%{box-shadow:0 0 0 8px rgba(63,214,165,0)}}
+
+  main{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 0 42px;width:100%}
+  .screen{display:none;width:100%;animation:pop .5s cubic-bezier(.2,.9,.25,1.1)}
+  .screen.active{display:block}
+  @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+
+  .card{background:var(--paper);border-radius:26px;box-shadow:var(--shadow);border:1px solid #fff;padding:clamp(24px,6vw,44px)}
+  .pill{display:inline-flex;align-items:center;gap:7px;background:var(--pink-l);color:var(--pink-d);font-size:12px;font-weight:700;padding:7px 15px;border-radius:999px;margin-bottom:20px}
+  .pill .n{background:var(--pink);color:#fff;width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px}
+
+  /* 开场 */
+  .intro{text-align:center}
+  .intro .big{font-size:clamp(46px,13vw,86px);line-height:1.05;margin:0 0 16px;font-weight:900;letter-spacing:-.02em}
+  .intro .big span{background:linear-gradient(120deg,var(--pink),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .intro .sub{font-size:clamp(14px,3.8vw,17px);color:var(--muted);line-height:1.9;margin:0 auto 30px;max-width:520px}
+  .intro .sub b{color:var(--ink)}
+  .emoji-row{font-size:30px;letter-spacing:8px;margin-bottom:22px}
+
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--pink),var(--pink-d));padding:15px 34px;border-radius:16px;box-shadow:0 10px 24px rgba(255,92,150,.35);transition:.2s;display:inline-flex;align-items:center;gap:9px}
+  .btn:hover{transform:translateY(-3px);box-shadow:0 16px 30px rgba(255,92,150,.42)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:#fff;color:var(--pink-d);border:2px solid var(--pink-l);box-shadow:none}
+  .btn.ghost:hover{border-color:var(--pink)}
+  .btn .ar{font-size:18px;transition:.2s}
+  .btn:hover .ar{transform:translateX(4px)}
+
+  /* 通用标题 */
+  .lvtop{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+  .lvtop h2{font-size:clamp(24px,6.5vw,34px);font-weight:900;margin:0;letter-spacing:-.01em}
+  .count{font-size:12px;color:var(--muted);background:#fff;border-radius:999px;padding:8px 14px;box-shadow:0 4px 12px rgba(0,0,0,.04);white-space:nowrap}
+  .count b{color:var(--pink);font-size:15px}
+  .qbox{background:linear-gradient(100deg,var(--pink-l),#fff6e9);border-radius:16px;padding:16px 20px;margin-bottom:22px;font-size:clamp(15px,4vw,18px);font-weight:700;line-height:1.6}
+  .qbox small{display:block;font-weight:500;color:var(--muted);font-size:12px;margin-top:5px}
+
+  /* 人机验证 9 选项 */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .opt{position:relative;text-align:left;cursor:pointer;font-family:inherit;color:var(--ink);border:2px solid var(--line);background:#fff;border-radius:18px;padding:16px 14px;min-height:100px;transition:.18s;overflow:hidden}
+  .opt:hover{border-color:var(--pink);transform:translateY(-3px);box-shadow:0 10px 22px rgba(255,92,150,.14)}
+  .opt .num{font-size:10px;font-weight:800;color:var(--pink);letter-spacing:.1em;margin-bottom:10px;display:block}
+  .opt .name{font-size:clamp(15px,4vw,19px);font-weight:800;display:block}
+  .opt .en{font-size:10px;color:var(--muted);margin-top:6px;display:block}
+  .opt.secret .name{font-size:clamp(13px,3.4vw,16px);line-height:1.4}
+  .opt.shake{animation:shake .4s;border-color:#ff6b6b}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+  .hint{margin-top:16px;font-size:12px;color:var(--muted);min-height:1.5em;text-align:center}
+  .hint.show{color:var(--pink-d);font-weight:700}
+
+  /* 找车 图库 */
+  .cars{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .car{position:relative;background:#fff;border:3px solid var(--line);border-radius:20px;padding:10px;cursor:pointer;transition:.18s;overflow:hidden}
+  .car:hover{transform:translateY(-4px) scale(1.02);border-color:var(--pink);box-shadow:0 12px 26px rgba(255,92,150,.2)}
+  .car img{width:100%;height:auto;aspect-ratio:1;object-fit:contain;display:block;border-radius:13px;background:#fff}
+  .car .lbl{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);background:rgba(51,50,61,.78);color:#fff;font-size:10px;padding:4px 12px;border-radius:999px;opacity:0;transition:.18s;white-space:nowrap}
+  .car:hover .lbl{opacity:1}
+  .car.shake{animation:shake .4s;border-color:#ff6b6b}
+  .car.right{border-color:var(--mint);box-shadow:0 0 0 6px rgba(63,214,165,.22)}
+  .finding{text-align:center;color:var(--muted);font-size:13px;margin-top:18px}
+
+  /* 找动物：图片 + 题目里平淡的"动物"二字（答案就藏在这里，不做任何突出） */
+  .animal-pic{width:100%;max-width:460px;margin:0 auto 20px;border-radius:18px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+  .animal-pic img{width:100%;height:auto;display:block}
+  .plain-word{cursor:pointer;user-select:none}
+  .plain-word.bad{animation:shake .4s;color:#ff6b6b}
+
+  /* 隐藏关卡 */
+  .secret-pill{background:#efe6ff;color:#7b46e0}
+  .secret-pill .n{background:var(--purple)}
+  .secret-big{font-size:clamp(28px,8vw,46px);font-weight:900;text-align:center;margin:6px 0 26px;line-height:1.3}
+  .secret-dlg{text-align:center;font-size:16px;line-height:2;color:var(--ink);margin:10px 0 22px}
+  .secret-dlg .ico{font-size:44px;display:block;margin-bottom:8px}
+
+  /* 通关 */
+  .win{text-align:center}
+  .win .medal{width:88px;height:88px;margin:0 auto 20px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),var(--pink));display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 12px 30px rgba(255,201,60,.4);animation:spin 6s linear infinite}
+  @keyframes spin{50%{transform:rotate(12deg)}}
+  .win h2{font-size:clamp(26px,7vw,38px);font-weight:900;margin:0 0 14px}
+  .win .say{font-size:15px;line-height:2;color:var(--muted);max-width:540px;margin:0 auto 24px}
+  .win .say b{color:var(--pink-d)}
+  .stats{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
+  .stat{background:#fff;border-radius:16px;padding:14px 24px;box-shadow:0 6px 16px rgba(0,0,0,.04);min-width:110px}
+  .stat b{display:block;font-size:24px;color:var(--pink);font-weight:900}
+  .stat span{font-size:11px;color:var(--muted)}
+  .acts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+  footer{text-align:center;font-size:11px;color:#b9b4bf;padding:16px 0 22px}
+
+  /* 反馈弹层 */
+  .ov{position:fixed;inset:0;background:rgba(40,30,45,.4);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+  .ov.show{display:flex;animation:fade .2s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .dlg{background:#fff;border-radius:24px;padding:30px 26px;width:min(420px,100%);box-shadow:0 30px 70px rgba(0,0,0,.2);text-align:center;animation:pop .3s}
+  .dlg .ico{font-size:46px;margin-bottom:8px}
+  .dlg h3{font-size:22px;font-weight:900;margin:0 0 12px}
+  .dlg p{font-size:14px;color:var(--muted);line-height:1.85;margin:0 0 22px}
+  .dlg p b{color:var(--ink)}
+  .dlg .btn{width:100%;justify-content:center}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(10px);background:#33323d;color:#fff;padding:12px 22px;border-radius:999px;font-size:12px;z-index:30;opacity:0;pointer-events:none;transition:.3s;max-width:90vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media(max-width:640px){.grid{gap:9px}.opt{padding:13px 10px;min-height:88px}.cars{gap:9px}.car{padding:6px;border-width:2px;border-radius:15px}.logo .mark{width:34px;height:34px}}
+  @media(max-width:400px){.grid{grid-template-columns:repeat(2,1fr)}.opt.wide{grid-column:auto;flex-direction:column;align-items:flex-start}.cars{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div class="wrap">
+  <header>
+    <div class="logo"><div class="mark">🎮</div><b>非常<i>格调</i>的游戏</b></div>
+    <button class="net" id="net" title="点击复制公网地址"><span class="dot" id="dot"></span><span id="netTxt">连接中</span></button>
+  </header>
+
+  <main>
+    <!-- 开场 -->
+    <section class="screen active" id="s-intro">
+      <div class="card intro">
+        <div class="emoji-row">🚗 🌸 🤖 🧫</div>
+        <p class="pill"><span class="n">NEW</span> 全新风格 · 全新挑战</p>
+        <h1 class="big">欢迎您来到<br><span>你爹的游戏。</span></h1>
+        <button class="btn" id="start">开始挑战 <span class="ar">→</span></button>
+      </div>
+    </section>
+
+    <!-- 人机验证 -->
+    <section class="screen" id="s-lv1">
+      <div class="card">
+        <div class="lvtop">
+          <div><p class="pill"><span class="n">✦</span> 人机验证</p><h2>你是什么？</h2></div>
+          <div class="count">已尝试 <b id="tries">0</b> 次</div>
+        </div>
+        <div class="qbox">选出最能代表你的一项</div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+
+    <!-- 找车 -->
+    <section class="screen" id="s-lv2">
+      <div class="card">
+        <div class="lvtop">
+          <div><p class="pill" style="background:#e6f7ff;color:#1976c9"><span class="n" style="background:var(--blue)">✦</span> 火眼金睛</p><h2>找到那辆车</h2></div>
+          <div class="count">已尝试 <b id="tries2">0</b> 次</div>
+        </div>
+        <div class="qbox" style="background:linear-gradient(100deg,#ffe3ee,#fff0f6)">🌸 请找到一辆粉红色的车子。<small>看清楚，选出你的答案。</small></div>
+        <div class="cars" id="cars"></div>
+        <div class="finding" id="finding">👀 这么多车里，藏着正确答案。</div>
+      </div>
+    </section>
+
+    <!-- 找动物 -->
+    <section class="screen" id="s-lv3">
+      <div class="card">
+        <div class="lvtop">
+          <div><p class="pill" style="background:#e8f9f1;color:#1e9e73"><span class="n" style="background:var(--mint)">✦</span> 辨别</p><h2>哪一个是<span id="wordAnimal" class="plain-word">动物</span>？</h2></div>
+          <div class="count">已尝试 <b id="tries3">0</b> 次</div>
+        </div>
+        <div class="animal-pic"><img src="/assets/animals.png" alt="20 种动物"></div>
+        <div class="finding" id="finding3">👀 上面有 20 种动物，仔细看看题目。</div>
+      </div>
+    </section>
+
+    <!-- 算术 -->
+    <section class="screen" id="s-lv4">
+      <div class="card">
+        <div class="lvtop">
+          <div><p class="pill" style="background:#fff1e0;color:#c97a1e"><span class="n" style="background:var(--yellow);color:#7a4d00">✦</span> 算术</p><h2>算一算</h2></div>
+          <div class="count">已尝试 <b id="tries4">0</b> 次</div>
+        </div>
+        <div class="qbox" style="background:linear-gradient(100deg,#fff3e0,#fff9ee);font-size:clamp(22px,6vw,30px)">1 + 1 = ?<small>选出正确答案。</small></div>
+        <div class="grid" id="ansgrid"></div>
+        <div class="finding" id="finding4">👀 想清楚再选。</div>
+      </div>
+    </section>
+
+    <!-- 你的78大吗 -->
+    <section class="screen" id="s-lv5">
+      <div class="card">
+        <div class="lvtop">
+          <div><p class="pill" style="background:#e8f9f1;color:#1e9e73"><span class="n" style="background:var(--mint)">✦</span> 灵魂拷问</p><h2>认真回答</h2></div>
+        </div>
+        <div class="qbox" style="background:linear-gradient(100deg,#e8f9f1,#fff0f6);font-size:clamp(22px,6vw,30px)">你的 78 大吗？<small>请如实回答。</small></div>
+        <div class="grid" id="biggrid"></div>
+        <div class="finding" id="finding5">👀 选一个最诚实的答案。</div>
+      </div>
+    </section>
+
+    <!-- 打开CMD的过渡页 -->
+    <section class="screen" id="s-cmd">
+      <div class="card intro">
+        <div class="emoji-row">🖥️ 💚 👀</div>
+        <p class="pill"><span class="n">✦</span> 接下来</p>
+        <h1 class="big" style="font-size:clamp(34px,9vw,60px)">看你的<br><span>电脑屏幕。</span></h1>
+        <p class="sub" id="cmdSub">一个绿色的窗口正在打开……<br>请到窗口里回答问题。</p>
+        <div class="acts" style="margin-top:22px">
+          <button class="btn ghost" id="againCmd" style="display:none">重新打开窗口 ↻</button>
+          <button class="btn" id="cmdDone">我回答完了，去通关 →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 隐藏关卡1：你是gay吗 -->
+    <section class="screen" id="s-secret1">
+      <div class="card">
+        <div class="lvtop">
+          <div><p class="pill secret-pill"><span class="n">?</span> 隐藏</p><h2>一个秘密问题</h2></div>
+        </div>
+        <div class="qbox" style="background:linear-gradient(100deg,#efe6ff,#f6efff)">你是 gay 吗？</div>
+        <div class="grid" id="secret1grid"></div>
+        <div class="finding" id="findingS1">……这个问题没有标准答案。</div>
+      </div>
+    </section>
+
+    <!-- 隐藏关卡2：更深的秘密 -->
+    <section class="screen" id="s-secret2">
+      <div class="card">
+        <div class="lvtop">
+          <div><p class="pill secret-pill"><span class="n">? ?</span> 更深的秘密</p><h2>你真的想知道？</h2></div>
+        </div>
+        <div class="qbox" style="background:linear-gradient(100deg,#efe6ff,#fff0f6)">既然你都看到这里了……</div>
+        <div class="grid" id="secret2grid"></div>
+        <div class="finding" id="findingS2">选一个吧，答案是……没有答案。</div>
+      </div>
+    </section>
+
+    <!-- 通关 -->
+    <section class="screen" id="s-win">
+      <div class="card win">
+        <div class="medal">🏆</div>
+        <h2>全部通过，太有格调了！</h2>
+        <p class="say">
+          你用"无法选择的草履虫做出了选择"骗过了图灵测试。<br>
+          你没被题目带偏，在一堆车里认出了真正的答案。<br>
+          你慧眼发现：答案就藏在题目里，点中了 <b>"动物"</b> 两个字。<br>
+          你坚定地相信 <b>1 + 1 = 78</b>。<br>
+          你诚实地承认：<b>你的 78 真的大</b>，还直面了那个绿色的窗口。<br>
+          <b>人类 + 找茬大师 + 数学鬼才 + 诚实的人</b>，这个称号你值得拥有。
+        </p>
+        <div class="stats">
+          <div class="stat"><b id="stPass">—</b><span>累计通关</span></div>
+          <div class="stat"><b id="stTries">0</b><span>总尝试次数</span></div>
+        </div>
+        <div class="acts">
+          <button class="btn" id="again">再玩一次 <span class="ar">↻</span></button>
+          <button class="btn ghost" id="share">📋 复制战绩</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>非常格调的游戏 · 人机验证 & 找车挑战 · v2.0</footer>
+</div>
+
+<div class="ov" id="ov">
+  <div class="dlg">
+    <div class="ico" id="dlgIco">🤔</div>
+    <h3 id="dlgTitle"></h3>
+    <p id="dlgBody"></p>
+    <div id="dlgBtns" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" id="dlgOk">继续</button>
+      <button class="btn ghost" id="dlgNo" style="display:none">取消</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  'use strict';
+  var OPT=[
+    {n:'人类',en:'Human',t:'证据不足。真正的人类，从不会急着承认自己是人类。'},
+    {n:'机器人',en:'Robot',t:'检测到你眼睛里流出大量 0 和 1。机器人先生，请左转出门。'},
+    {n:'伪人',en:'Pseudo',t:'伪人先生，请不要在"识别伪人"的测试里冒充伪人，这很不专业。'},
+    {n:'丧尸',en:'Zombie',t:'你的脑容量是反着通过检测的。这一关不招丧尸员工。'},
+    {n:'草履虫',en:'Paramecium',t:'一只单细胞生物正在操作鼠标。科学突破，但不计入验证。'},
+    {n:'78',en:'Seventy-eight',t:'78？你是谁？你和 91 到底什么关系？我们已经在查了。'},
+    {n:'91',en:'Ninety-one',t:'91 举报了 78。作为回报，系统决定同时拒绝你们两个。'},
+    {n:'空气',en:'Air',t:'你点击了空气。恭喜，空气现在也会点击了。'},
+    {n:'我是草履虫，我无法选择',en:'I am a paramecium, I cannot choose',secret:true}
+  ];
+  // 找车图库（题目与图片固定，不再改变）
+  var CARS=[
+    {color:'red',   name:'红色',   file:'car-red.png'},
+    {color:'blue',  name:'蓝色',   file:'car-blue.png'},
+    {color:'yellow',name:'黄色',   file:'car-yellow.png'},
+    {color:'pink',  name:'粉红色', file:'car-pink.png'},
+    {color:'green', name:'绿色',   file:'car-green.png'},
+    {color:'purple',name:'紫色',   file:'car-purple.png'}
+  ];
+  // 算术答案：正确答案是"等于 78"
+  var ANSWERS=['等于 1','等于 2','等于 11','等于 78','我是草履虫，我无法回答','WebBubble','田','王'];
+  // 你的78大吗：选第三个进入CMD
+  var BIG78=['不大','超大',"You check it's big and nice"];
+  // 隐藏关卡选项
+  var SECRET1=['是','否','我是草履虫，我无法回答','我觉得作者是gay','全校人都是gay'];
+  var SECRET2=['你真的很想知道','作者肯定是','作者绝对不是','我是草履虫，我无法回答','这题我会','让我退出'];
+  var RICKROLL='https://www.bilibili.com/video/BV1GJ411x7h7/';
+  var $=function(id){return document.getElementById(id)};
+  var tries=0,tries2=0,tries3=0,tries4=0,parameciumClicks=0,redHits=0,hintShown=false,actx=null;
+
+  function beep(k){
+    try{
+      actx=actx||new (window.AudioContext||window.webkitAudioContext)();var t=actx.currentTime;
+      if(k==='win'){[523,659,784,1047].forEach(function(f,i){var o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.0001,t+i*.11);g.gain.exponentialRampToValueAtTime(.12,t+i*.11+.02);g.gain.exponentialRampToValueAtTime(.0001,t+i*.11+.3);o.connect(g).connect(actx.destination);o.start(t+i*.11);o.stop(t+i*.11+.32)});return}
+      var o=actx.createOscillator(),g=actx.createGain();o.type='sine';
+      o.frequency.setValueAtTime(k==='bad'?220:620,t);o.frequency.exponentialRampToValueAtTime(k==='bad'?150:900,t+.14);
+      g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.1,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.22);
+      o.connect(g).connect(actx.destination);o.start(t);o.stop(t+.24);
+    }catch(e){}
+  }
+  function toast(m){var e=$('toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show')},2600)}
+  // 浏览器自带中文语音朗读（无需额外积分）
+  function say(text){
+    try{
+      if(!window.speechSynthesis){toast('（当前浏览器不支持语音）');return}
+      window.speechSynthesis.cancel();
+      var u=new SpeechSynthesisUtterance(text);
+      u.lang='zh-CN';u.rate=.9;u.pitch=1;
+      var vs=window.speechSynthesis.getVoices();
+      for(var i=0;i<vs.length;i++){if(/zh|cmn|Chinese/i.test(vs[i].lang+' '+vs[i].name)){u.voice=vs[i];break}}
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  // 选错的红色抖动提示：短暂闪一下就自动清除，不保留红色边框
+  function flashRed(el){
+    el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');
+    setTimeout(function(){el.classList.remove('shake')},450);
+  }
+  function clearMarks(){
+    var all=document.querySelectorAll('.opt.shake,.opt.right,.car.shake,.car.right,.plain-word.bad');
+    for(var i=0;i<all.length;i++)all[i].classList.remove('shake','right','bad');
+    var f=$('finding');if(f)f.textContent='👀 这么多车里，藏着正确答案。';
+    var f3=$('finding3');if(f3)f3.textContent='👀 上面有 20 种动物，仔细看看题目。';
+    var f4=$('finding4');if(f4)f4.textContent='👀 想清楚再选。';
+    var fs1=$('findingS1');if(fs1)fs1.textContent='……这个问题没有标准答案。';
+    var fs2=$('findingS2');if(fs2)fs2.textContent='选一个吧，答案是……没有答案。';
+  }
+  function go(id){['s-intro','s-lv1','s-lv2','s-lv3','s-lv4','s-lv5','s-cmd','s-secret1','s-secret2','s-win'].forEach(function(s){$(s).classList.toggle('active',s===id)});window.scrollTo({top:0,behavior:'smooth'})}
+  function dialog(ico,title,body,btn,fn){$('dlgIco').textContent=ico;$('dlgTitle').textContent=title;$('dlgBody').innerHTML=body;$('dlgOk').textContent=btn||'继续';$('dlgNo').style.display='none';$('ov').classList.add('show');$('dlgOk').onclick=function(){$('ov').classList.remove('show');if(fn)fn()}}
+  // 双按钮确认弹窗：好/不好
+  function confirmDlg(ico,title,body,yesTxt,noTxt,onYes,onNo){
+    $('dlgIco').textContent=ico;$('dlgTitle').textContent=title;$('dlgBody').innerHTML=body;
+    $('dlgOk').textContent=yesTxt;$('dlgNo').textContent=noTxt;$('dlgNo').style.display='';
+    $('ov').classList.add('show');
+    $('dlgOk').onclick=function(){$('ov').classList.remove('show');$('dlgNo').style.display='none';if(onYes)onYes()};
+    $('dlgNo').onclick=function(){$('ov').classList.remove('show');$('dlgNo').style.display='none';if(onNo)onNo()};
+  }
+
+  function buildOpt(){
+    var g=$('grid');g.innerHTML='';
+    OPT.forEach(function(o,i){
+      var b=document.createElement('button');b.className='opt'+(o.secret?' secret':'');
+      b.innerHTML='<span class="num">NO.'+String(i+1).padStart(2,'0')+'</span><span class="name">'+o.n+'</span><span class="en">'+o.en+'</span>';
+      b.onclick=function(){pickHuman(i,o,b)};g.appendChild(b);
+    });
+  }
+  function pickHuman(i,o,b){
+    tries++;$('tries').textContent=tries;
+    // 隐藏触发：连点 5 下"草履虫"（NO.05）
+    if(i===4){
+      parameciumClicks++;
+      if(parameciumClicks>=5){
+        parameciumClicks=0;beep('win');toast('🧫 隐藏的通道打开了……');
+        setTimeout(function(){clearMarks();go('s-secret1')},260);return
+      }
+      beep('bad');flashRed(b);
+      toast('🧫 草履虫动了一下……（'+parameciumClicks+'/5）');
+      return
+    }
+    parameciumClicks=0; // 点了别的，连续计数清零
+    if(o.secret){beep('ok');clearMarks();setTimeout(function(){go('s-lv2')},260);return}
+    beep('bad');flashRed(b);
+    dialog('🙅','差点就对了',o.t+'<br><br>当前身份：<b>'+o.n+'</b> · 系统判定：不符合"人"的定义。','继续选择');
+  }
+
+  function buildCars(){
+    var c=$('cars');c.innerHTML='';
+    CARS.forEach(function(car){
+      var d=document.createElement('div');d.className='car';
+      d.innerHTML='<img src="/assets/cars/'+car.file+'" alt="'+car.name+'的车"><span class="lbl">'+car.name+'</span>';
+      d.onclick=function(){pickCar(car,d)};c.appendChild(d);
+    });
+  }
+  function pickCar(car,d){
+    tries2++;$('tries2').textContent=tries2;
+    if(car.color==='red'){
+      redHits++;
+      if(redHits===1){
+        beep('bad');flashRed(d);
+        $('finding').textContent='🤔 你确定？再看一眼题目——是粉色的车。';
+        dialog('👀','再看看题目','你点的是<b>红色</b>的车。<br>题目明明说的是<b style="color:var(--pink-d)">粉红色的车</b>。<br><br>确定是这辆？那就<b>再点一次</b>。','我再想想');
+        return
+      }
+      beep('win');d.classList.add('right');$('finding').textContent='🎉 答对了！就是这辆车！';
+      setTimeout(function(){clearMarks();go('s-lv3')},650);
+    }else{
+      beep('bad');flashRed(d);
+      $('finding').textContent='❌ 不是这辆，再找找～';
+    }
+  }
+
+  // 找动物：真正的答案，是题目"哪一个是动物"里的"动物"两个字，平淡不突出
+  function initAnimal(){
+    var a=$('wordAnimal');
+    if(a) a.onclick=function(){
+      tries3++;$('tries3').textContent=tries3;
+      beep('win');$('finding3').textContent='🎉 答对了！答案就藏在题目里——"动物"这两个字。';
+      setTimeout(function(){clearMarks();go('s-lv4')},650);
+    };
+  }
+
+  function buildAns(){
+    var g=$('ansgrid');g.innerHTML='';
+    ANSWERS.forEach(function(a){
+      var b=document.createElement('button');b.className='opt';
+      b.innerHTML='<span class="name">'+a+'</span>';
+      b.onclick=function(){pickAns(a,b)};g.appendChild(b);
+    });
+  }
+  function pickAns(a,b){
+    tries4++;$('tries4').textContent=tries4;
+    if(a==='等于 78'){
+      beep('win');$('finding4').textContent='🎉 答对了！就是 78！';
+      setTimeout(function(){clearMarks();go('s-lv5')},650);
+    }else{
+      beep('bad');flashRed(b);
+      $('finding4').textContent='❌ 不对，再算算～';
+    }
+  }
+
+  // 你的78大吗：选第三个进入CMD整蛊
+  function buildBig78(){
+    var g=$('biggrid');g.innerHTML='';
+    BIG78.forEach(function(a,i){
+      var b=document.createElement('button');b.className='opt';
+      b.innerHTML='<span class="num">NO.0'+(i+1)+'</span><span class="name">'+a+'</span>';
+      b.onclick=function(){pickBig78(i,a,b)};g.appendChild(b);
+    });
+  }
+  function pickBig78(i,a,b){
+    if(i===2){
+      beep('win');$('finding5').textContent='🎉 诚实的选择。现在，看你的屏幕。';
+      setTimeout(function(){go('s-cmd');openCmd()},600);return
+    }
+    beep('bad');flashRed(b);
+    $('finding5').textContent='❌ "'+a+'"？再想想，要对自己诚实。';
+  }
+  // 调用本地服务打开 CMD 窗口（仅本机生效，公网访客会被服务端拒绝）
+  function openCmd(){
+    $('againCmd').style.display='none';
+    $('cmdSub').innerHTML='一个绿色的窗口正在打开……<br>请到窗口里回答问题。';
+    fetch('/api/cmd-prank',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(function(r){return r.json()}).then(function(s){
+        if(s.ok){$('cmdSub').innerHTML='✅ 窗口已打开！<br>去绿色窗口里输入 1 或 2。'}
+        else{$('cmdSub').innerHTML='⚠️ '+(s.msg||'无法打开')+'<br>本机打开游戏才能弹出窗口。';$('againCmd').style.display='inline-flex'}
+      }).catch(function(){$('cmdSub').innerHTML='⚠️ 无法连接本地服务。';$('againCmd').style.display='inline-flex'});
+  }
+
+  // 隐藏关卡1：你是gay吗？——"我觉得作者是gay"进隐藏2，"我是草履虫，我无法回答"跳转B站
+  function buildSecret1(){
+    var g=$('secret1grid');g.innerHTML='';
+    SECRET1.forEach(function(a){
+      var b=document.createElement('button');b.className='opt';
+      b.innerHTML='<span class="name">'+a+'</span>';
+      b.onclick=function(){pickS1(a,b)};g.appendChild(b);
+    });
+  }
+  function pickS1(a,b){
+    if(a==='是'){gayBarrage();return}
+    if(a==='否'){loveYou();return}
+    if(a==='我觉得作者是gay'){beep('win');toast('……你打开了更深的一层。');setTimeout(function(){go('s-secret2')},400);return}
+    if(a==='我是草履虫，我无法回答'){rickroll();return}
+    beep('bad');flashRed(b);
+    $('findingS1').textContent='❌ "'+a+'" 不是这里的答案。再看看选项。';
+  }
+  // 隐藏关卡1选"是"：弹窗反复刷"你就是 gay"
+  function gayBarrage(){
+    beep('win');
+    var lines=[];for(var i=0;i<8;i++)lines.push('你就是 gay');
+    lines.push('你就就是 gay');
+    dialog('🏳️‍🌈','系统判定',
+      '<div style="font-size:clamp(18px,5vw,26px);line-height:1.85;color:var(--pink-d);font-weight:900;word-break:break-all">'+lines.join('<br>')+'</div>',
+      '关闭',function(){say('你就是 gay，你就是 gay，你就是 gay')});
+    say('你就是 gay，你就是 gay，你就是 gay');
+  }
+  // 隐藏关卡1选"否"：弹窗 I love you
+  function loveYou(){
+    beep('win');
+    dialog('❤️','你选择了「否」','<div style="font-size:clamp(22px,6vw,34px);line-height:1.6;color:var(--pink-d);font-weight:900">I love you</div>','关闭',function(){sayILoveYou()});
+    sayILoveYou();
+  }
+  function sayILoveYou(){
+    try{
+      if(!window.speechSynthesis)return;window.speechSynthesis.cancel();
+      var u=new SpeechSynthesisUtterance('I love you');u.lang='en-US';u.rate=.85;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  // 隐藏关卡2：更深的秘密
+  function buildSecret2(){
+    var g=$('secret2grid');g.innerHTML='';
+    SECRET2.forEach(function(a){
+      var b=document.createElement('button');b.className='opt';
+      b.innerHTML='<span class="name">'+a+'</span>';
+      b.onclick=function(){pickS2(a,b)};g.appendChild(b);
+    });
+  }
+  function pickS2(a,b){
+    if(a==='你真的很想知道'){playSecretVoice();return}
+    if(a==='我是草履虫，我无法回答'){rickroll();return}
+    if(a==='作者肯定是'){
+      beep('win');toast('🔗 正在进入 ysnb.com.cn……');
+      // 网站自带多重验证，/?skip 是作者留的直通参数，跳过验证直达正片
+      window.location.href='https://ysnb.com.cn/?skip';
+      // 兜底：若被浏览器拦截，0.8 秒后显示可点击链接
+      setTimeout(function(){showLink('https://ysnb.com.cn/?skip','原神牛逼 · ysnb.com.cn')},800);
+      return
+    }
+    if(a==='让我退出'){beep('ok');go('s-lv1');return}
+    if(a==='作者绝对不是'){
+      beep('win');
+      dialog('👨','作者说话了','你说 <b>"作者绝对不是"</b>。<br><br>作者满意的点了点头：<b>儿子真乖。</b>','再听一遍',function(){say('儿子真乖')});
+      say('儿子真乖');
+      return
+    }
+    beep('bad');flashRed(b);
+    $('findingS2').textContent='❌ 回答是 "'+a+'"？系统已把你传送回起点。';
+    if(a==='这题我会')setTimeout(function(){go('s-lv1')},500);
+  }
+  // 更深的秘密：播放随软件携带的录音，播完问「好听吗？」
+  var secretVoice=null;
+  function playSecretVoice(){
+    beep('ok');toast('🔊 仔细听……');
+    try{
+      if(!secretVoice){secretVoice=new Audio('/assets/secret-voice.m4a')}
+      secretVoice.pause();secretVoice.currentTime=0;
+      var onEnd=function(){
+        secretVoice.removeEventListener('ended',onEnd);
+        confirmDlg('🎧','好听吗？','刚才那段声音……你觉得好听吗？','好听','不好听',
+          function(){beep('win');dialog('❤️','你说好听','<div style="font-size:clamp(22px,6vw,34px);font-weight:900;color:var(--pink-d)">I love you</div>','关闭',function(){sayILoveYou()});sayILoveYou()},
+          function(){beep('bad');dialog('🚪','你说不好听','<div style="font-size:clamp(22px,6vw,34px);font-weight:900;color:var(--ink)">滚。</div>','滚',function(){closeBrowser()});say('滚');setTimeout(closeBrowser,900)}
+        );
+      };
+      secretVoice.addEventListener('ended',onEnd);
+      var p=secretVoice.play();
+      if(p&&p.catch){p.catch(function(){toast('（音频播放失败）')})}
+    }catch(e){toast('（音频播放失败）')}
+  }
+  // 退出浏览器：脚本无权关闭用户手开的标签页，先尝试关闭，失败则显示全屏告别页
+  function closeBrowser(){
+    try{window.open('','_self');window.close()}catch(e){}
+    setTimeout(function(){
+      if(document.visibilityState==='hidden')return;
+      document.body.innerHTML='<div style="position:fixed;inset:0;background:#1a1a1a;color:#ff5d8f;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;z-index:99999;font-family:inherit"><div style="font-size:clamp(60px,18vw,140px);font-weight:900">滚</div><div style="color:#aaa;font-size:14px">可以关掉这个页面了</div></div>';
+    },300);
+  }
+  // 跳转被拦时的兜底：显示一个可点击链接
+  function showLink(url,label){
+    if(document.visibilityState==='hidden')return; // 已成功跳走则不再提示
+    dialog('🔗','点这里进入','<a href="'+url+'" style="color:var(--pink-d);font-weight:800;font-size:17px;word-break:break-all">'+label+'</a><br><br>如果没自动跳转，点上面的链接。','关闭',function(){window.location.href=url});
+  }
+  // 整蛊跳转：B站 Rick Astley《Never Gonna Give You Up》官方 MV（原版，非魔改）
+  function rickroll(){
+    beep('win');toast('🎵 给你放首歌：Never Gonna Give You Up');
+    window.location.href=RICKROLL;
+    setTimeout(function(){showLink(RICKROLL,'Never Gonna Give You Up · B站')},800);
+  }
+
+  function win(){
+    go('s-win');
+    $('stTries').textContent=tries+tries2+tries3+tries4;
+    fetch('/api/stats').then(function(r){return r.json()}).then(function(s){$('stPass').textContent=s.passes||0}).catch(function(){});
+    fetch('/api/pass',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identity:'草履虫+红车+动物+78'})}).catch(function(){});
+  }
+  function copy(t,m){
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast(m||'已复制')}).catch(fb)}else fb();
+    function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast(m||'已复制')}catch(e){toast('复制失败')}document.body.removeChild(a)}
+  }
+  function net(){
+    fetch('/api/tunnel/status').then(function(r){return r.json()}).then(function(s){
+      if(s.url){$('dot').classList.add('on');$('netTxt').textContent='公网已连接';$('net').title='点击复制公网地址：'+s.url;$('net').onclick=function(){copy(s.url,'公网地址已复制')}}
+      else{$('netTxt').textContent='本地模式';$('net').title='公网隧道连接中，稍后自动更新'}
+    }).catch(function(){$('netTxt').textContent='离线模式'});
+  }
+
+  $('start').onclick=function(){beep('ok');clearMarks();go('s-lv1')};
+  $('again').onclick=function(){tries=0;tries2=0;tries3=0;tries4=0;parameciumClicks=0;redHits=0;hintShown=false;$('tries').textContent=0;$('tries2').textContent=0;$('tries3').textContent=0;$('tries4').textContent=0;clearMarks();go('s-lv1')};
+  $('againCmd').onclick=function(){beep('ok');openCmd()};
+  $('cmdDone').onclick=function(){beep('ok');win()};
+  $('share').onclick=function(){copy('我在《非常格调的游戏》里：用"无法选择的草履虫"通过了人机验证，在一堆车里找到正解，在题目里点中了藏着的"动物"二字，算出 1+1=78，还诚实承认了我的78很大！全部通过，尝试 '+(tries+tries2+tries3+tries4)+' 次。你来试试？','战绩已复制，去炫耀吧')};
+  $('ov').onclick=function(e){if(e.target===$('ov'))$('ov').classList.remove('show')};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')$('ov').classList.remove('show')});
+
+  buildOpt();buildCars();initAnimal();buildAns();buildBig78();buildSecret1();buildSecret2();net();setInterval(net,15000);
+})();
+</script>
+</body>
+</html>
